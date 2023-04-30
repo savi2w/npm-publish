@@ -1,0 +1,34 @@
+name: npm-publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
+          registry-url: https://registry.npmjs.org/
+      - run: npm i -g npm@7
+      - run: npm ci
+      
+      - run: git config --global user.email "github-actions@github.com"
+      - run: git config --global user.name "github-actions[bot]"
+
+      - run: npm version patch
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          
+      - run: git push
+        env:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
